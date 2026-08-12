@@ -1,6 +1,6 @@
 # Albion Online Split & Balance Bot ⚔️
 
-A robust Discord bot and web dashboard built on Cloudflare Workers and D1 Database, designed to manage guild loot splits and track owed silver balances in Albion Online!
+A robust Discord bot and web dashboard built on Cloudflare Workers ad D1 Database, designed to manage guild loot splits and track owed silver balances in Albion Online!
 
 ## ✨ Features
 - **Dynamic Loot Splits**: Start stateful party sessions, seamlessly add/deduct silver from the central pool as the night progresses, and close the tab to automatically pay out members evenly.
