@@ -25,6 +25,19 @@ export class SessionService {
         return result;
     }
 
+    async getAllSessionsWithMembers(): Promise<{session: SplitSession, members: string[]}[]> {
+        const sessions = await this.sessionRepo.getAllSessions();
+        const result = [];
+        for (const s of sessions) {
+            const members = await this.sessionRepo.getMembers(s.name);
+            result.push({
+                session: s,
+                members: members.map(m => m.discordId)
+            });
+        }
+        return result;
+    }
+
     async startSession(name: string, discordIds: string[]): Promise<SplitSession> {
         const existing = await this.sessionRepo.getSession(name);
         if (existing && existing.status === 'open') {
@@ -75,10 +88,10 @@ export class SessionService {
         const poolAfterTax = session.totalAmount - taxAmount;
         const splitAmount = Math.floor(poolAfterTax / validMembers.length);
 
-        // Distribute funds only to valid members
-        await Promise.all(validMembers.map(m => 
-            this.balanceService.modifyBalance(m.discordId, splitAmount, adminDiscordId, `Split: ${name}`)
-        ));
+        // Distribute funds only to valid members sequentially to avoid D1 lock errors
+        for (const m of validMembers) {
+            await this.balanceService.modifyBalance(m.discordId, splitAmount, adminDiscordId, `Split: ${name}`);
+        }
 
         await this.sessionRepo.closeSession(name);
         const closedSession = (await this.sessionRepo.getSession(name))!;
@@ -90,5 +103,13 @@ export class SessionService {
             skipped: skippedMembers.map(m => m.discordId),
             taxAmount
         };
+    }
+    async cancelSession(name: string): Promise<SplitSession> {
+        const session = await this.sessionRepo.getSession(name);
+        if (!session) throw new Error(`Session "${name}" not found.`);
+        if (session.status === 'closed') throw new Error(`Session "${name}" is already closed and cannot be cancelled.`);
+
+        await this.sessionRepo.deleteSession(name);
+        return session;
     }
 }

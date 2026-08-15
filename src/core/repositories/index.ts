@@ -18,6 +18,7 @@ export interface ITransactionRepository {
     findByWalletId(walletId: string, limit?: number): Promise<Transaction[]>;
     getIssuerStats(): Promise<Array<{adminDiscordId: string, totalAmount: number, txCount: number}>>;
     getLootSplitStats(): Promise<Array<{note: string, totalAmount: number, splitCount: number, recentDate: string}>>;
+    getEarningsPerUser(startDate: string, endDate: string): Promise<Array<{discordId: string, earned: number}>>;
 }
 
 import { SplitSession, SplitMember } from '../entities';
@@ -26,9 +27,11 @@ export interface ISessionRepository {
     createSession(name: string): Promise<SplitSession>;
     getSession(name: string): Promise<SplitSession | null>;
     getOpenSessions(): Promise<SplitSession[]>;
+    getAllSessions(): Promise<SplitSession[]>;
     updateSessionAmount(name: string, amountToAdd: number): Promise<void>;
     closeSession(name: string): Promise<void>;
     
     addMembers(sessionName: string, discordIds: string[]): Promise<void>;
     getMembers(sessionName: string): Promise<SplitMember[]>;
+    deleteSession(name: string): Promise<void>;
 }
